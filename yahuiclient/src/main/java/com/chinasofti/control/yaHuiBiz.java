@@ -9,6 +9,9 @@ import com.chinasofti.domain.Food;
 import com.chinasofti.domain.Po;
 
 public interface yaHuiBiz {
+	//新用户注册
+	public String addCustomer(String userName,String account,String password);
+	
 	//客户登录验证
 	public Customer cLogin(String account,String password);
 		
@@ -51,6 +54,9 @@ public interface yaHuiBiz {
 	//冻结用户
 	public String freezeUser(int userId);
 	
+	//冻结用户
+	public String relieveUser(int userId);
+	
 	//挂失
 	public String report(int cardId);
 	
@@ -58,7 +64,7 @@ public interface yaHuiBiz {
 	public String replace(int cardId);
 	
 	//查询各个菜品月销量
-	public Map<String, Integer> sale();
+	public Map<Food, Integer> sale();
 	
 	//查看最受欢迎的菜品
 	public String favorite();
@@ -77,5 +83,8 @@ public interface yaHuiBiz {
 		
 	//删除菜品
 	public String removeFood(int fId);
+	
+	//修改会员折扣
+	public String modifyVipDis(int lev,double dis);
 
 }

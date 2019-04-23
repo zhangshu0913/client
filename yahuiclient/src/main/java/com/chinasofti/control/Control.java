@@ -19,7 +19,7 @@ public class Control {
 	//属性
 	private View v;
 	private UserInput ui;
-	private static final String IP="127.0.0.1";
+	private static final String IP="10.10.49.62";
 	private static final int PORT=9999;
 	private yaHuiBiz service;
 	//构造方法
@@ -32,14 +32,21 @@ public class Control {
 	// 流程
 	Customer c = null;
 	Employee e = null;
-	
-	
+	int i=0;
 	public void start(){
-		this.v.welcome();
-		int i = this.ui.getInt("请选择：");
+		while(true){
+			this.v.welcome();
+			i = this.ui.getInt("请选择：");
+			if(i==3){
+				this.register();
+			}else if(i==1||i==2){
+				break;
+			}
+		}
 		while (true) {
 			String account = this.ui.getString("请输入账号：");
 			String password = this.ui.getString("请输入密码:");
+			
 			if(i==1){
 				c = this.service.cLogin(account, password);
 				if(c!=null ){
@@ -70,7 +77,7 @@ public class Control {
 				int select = this.ui.getInt("请选择：");
 				if(select==0){
 					this.v.println("您已退出系统！");
-					System.exit(1);
+					System.exit(0);
 				}else if(select==1){
 					this.custInfo();
 				}else if(select==2){
@@ -105,57 +112,59 @@ public class Control {
 						}
 					}
 				}else if(mgr==1){
+					//经理处理功能
 					while(true){
-						//经理处理功能
 						this.v.manager();
 						int select = this.ui.getInt("请选择：");
-						while(true){
-							if(select==0){
-								this.v.println("您已退出系统！");
-								System.exit(0);
-							}else if(select==1){
-								while(true){
-									this.v.manEmp();
-									select = this.ui.getInt("请选择：");
-									if(select==0){
-										break;
-									}else if(select==1){
-										this.addEmp();
-									}else if(select==2){
-										this.deleteEmp();
-									}else if(select==3){
-										this.selectAllEmp();
-									}
+						if(select==0){
+							this.v.println("您已退出系统！");
+							System.exit(0);
+						}else if(select==1){
+							while(true){
+								this.v.manEmp();
+								select = this.ui.getInt("请选择：");
+								if(select==0){
+									break;
+								}else if(select==1){
+									this.addEmp();
+								}else if(select==2){
+									this.deleteEmp();
+								}else if(select==3){
+									this.selectAllEmp();
 								}
-							}else if(select==2){
-								while(true){
-									this.v.manUser();
-									select = this.ui.getInt("请选择：");
-									if(select==0){
-										break;
-									}else if(select==1){
-										this.getNew();
-									}else if(select==2){
-										this.congel();
-									}
+							}
+						}else if(select==2){
+							while(true){
+								this.v.manUser();
+								select = this.ui.getInt("请选择：");
+								if(select==0){
+									break;
+								}else if(select==1){
+									this.getNew();
+								}else if(select==2){
+									this.congel();
+								}else if(select==3){
+									this.setDis();
+								}else if(select==4){
+									this.reLive();
 								}
-							}else if(select==3){
-								while(true){
-									this.v.manFood();
-									select = this.ui.getInt("请选择：");
-									if(select==0){
-										break;
-									}else if(select==1){
-										this.addFood();
-									}else if(select==2){
-										this.updateFood();
-									}else if(select==3){
-										this.selectAllFood();
-									}else if(select==4){
-										this.deleteFood();
-									}else if(select==5){
-										this.count();
-									}
+							}
+						}else if(select==3){
+							while(true){
+								this.v.manFood();
+								select = this.ui.getInt("请选择：");
+								if(select==0){
+									break;
+								}else if(select==1){
+									this.addFood();
+								}else if(select==2){
+									this.updateFood();
+								}else if(select==3){
+									this.selectAllFood();
+								}else if(select==4){
+									this.deleteFood();
+								}else if(select==5){
+									this.count();
 								}
 							}
 						}
@@ -164,7 +173,47 @@ public class Control {
 			}
 		}
 	}
-	
+	//新用户注册
+	private void register() {
+		String uname = this.ui.getString("请输入姓名：");
+		String account = this.ui.getString("请输入账号：");
+		String passward = this.ui.getString("请输入密码：");
+		if(!(passward.equals(this.ui.getString("请再次输入密码：")))){
+			this.v.println("两次密码不一致");
+			return ;
+		}else{
+			System.out.println(this.service.addCustomer(uname, account, passward));
+		}
+	}
+	//账户解冻
+	private void reLive() {
+		int id = this.ui.getInt("请输入解冻账户id：");
+		Customer cus = this.service.findCustById(id);
+		if(cus==null){
+			this.v.println("客户不存在");
+		}else{
+			if(cus.getUserState()==0){
+				System.out.println(this.service.relieveUser(id));
+				return ;
+			}else{
+				this.v.println("该账户未被冻结");
+				return ;
+			}
+		}
+		
+		
+	}
+	//设置会员折扣
+	private void setDis() {
+		int i = this.ui.getInt("请输入会员卡等级");
+		if(i==1 || i==2){
+			this.v.println(this.service.modifyVipDis(i, this.ui.getDouble("请输入折扣：")));
+		}else{
+			this.v.println("会员等级不正确");
+		}
+		
+	}
+
 	//员工个人信息
 	private void empInfo() {
 		System.out.println(e);
@@ -176,13 +225,13 @@ public class Control {
 
 	//统计
 	private void count() {
-		Map<String, Integer> m = this.service.sale();
-		Set<String> s = m.keySet();
-		System.out.println("菜品名称\t销量");
-		for (String string : s) {
-			System.out.println(s+"\t"+m.get(s));
+		Map<Food, Integer> m = this.service.sale();
+		Set<Food> s = m.keySet();
+		this.v.println("菜品名称\t销量");
+		for (Food f : s) {
+			this.v.println(f.getfName()+"\t"+m.get(f));
 		}
-		System.out.println("顾客最喜欢的菜品:"+this.service.favorite());
+		this.v.println("顾客最喜欢的菜品:"+this.service.favorite());
 	}
 	//删除菜品
 	private void deleteFood() {
@@ -197,13 +246,13 @@ public class Control {
 			System.out.println(this.service.removeFood(id));
 			return;
 		}
-		System.out.println("删除失败");
+		this.v.println("删除失败");
 	}
 	//查看菜品
 	private void selectAllFood() {
 		List<Food> list = this.service.findFood();
 		if(list==null){
-			System.out.println("暂时没有菜品");
+			this.v.println("暂时没有菜品");
 			return;
 		}
 		this.v.println("菜品编号\t名称\t价格\t种类\t折扣");
@@ -228,17 +277,22 @@ public class Control {
 	}
 	//添加菜品
 	private void addFood() {
-		String name = this.ui.getString("请输入新增菜品名称：");
-		List<Food> list=new ArrayList<Food>();
-		for (Food f : list) {
-			if(f.getfName().equals(name)){
-				this.v.println("该菜品已存在，请重新输入！");
-				return ;
+		while(true){
+			String name = this.ui.getString("请输入新增菜品名称：");
+			List<Food> list=new ArrayList<Food>();
+			for (Food f : list) {
+				if(f.getfName().equals(name)){
+					this.v.println("该菜品已存在，请重新输入！");
+					return ;
+				}
+			}
+			String s = this.service.addFood(name, this.ui.getDouble("请输入菜品价格："),
+					this.ui.getInt("请输入菜品种类编号："), this.ui.getDouble("请输入菜品折扣："));
+			System.out.println(s);
+			if(!"y".equals(this.ui.getString("是否继续添加(y/n)"))){
+				break;
 			}
 		}
-		String s = this.service.addFood(name, this.ui.getDouble("请输入菜品价格："),
-				this.ui.getInt("请输入菜品种类编号："), this.ui.getDouble("请输入菜品折扣："));
-		System.out.println(s);
 	}
 	//冻结客户
 	private void congel() {
@@ -282,10 +336,15 @@ public class Control {
 	}
 	//添加员工
 	private void addEmp() {
-		String s = this.service.addEmployee(this.ui.getString("请输入员工姓名："), 
-				this.ui.getString("请输入员工账号："), 
-				this.ui.getString("请输入初始密码："));
-		System.out.println(s);
+		while(true){
+			String s = this.service.addEmployee(this.ui.getString("请输入员工姓名："), 
+					this.ui.getString("请输入员工账号："), 
+					this.ui.getString("请输入初始密码："));
+			System.out.println(s);
+			if(!"y".equals(this.ui.getString("是否继续添加(y/n)"))){
+				break;
+			}	
+		}
 		
 	}
 	//员工修改个人密码
@@ -342,7 +401,6 @@ public class Control {
 		this.v.println(s);
 	}
 	
-	
 	//客户点餐
 	private void showFood() {
 		this.v.println("菜品编号\t名称\t价格\t种类\t折扣");
@@ -359,7 +417,7 @@ public class Control {
 				return ;
 			}
 			int num = this.ui.getInt("请输入需要的数量：");
-			//订单存储（编号和数量）
+			//订单存储（菜品编号和数量）
 			m.put(this.service.findFoodById(fId), num);
 			String s = this.ui.getString("继续点餐(y)结束点餐(n)退订菜品(c)");
 			if("c".equals(s)){
@@ -367,10 +425,11 @@ public class Control {
 				Food food = this.service.findFoodById(i);
 				if(food==null){
 					this.v.println("菜品不存在");
+					return ;
 				}else{
-					m.remove(i);
+					m.remove(food);
 				}	
-			}else if(!"y".equals(s)){
+			}else if(!("y".equals(s))){
 				break;
 			}
 			
@@ -390,23 +449,32 @@ public class Control {
 		int i = this.ui.getInt("请选择现金支付(1)或会员卡支付(2)");
 		if(i==1){
 			getMoney=this.ui.getDouble("请输入支付金额");
-			this.v.println("您一共消费"+sumprice+"元，欢迎下次光临！");
+			if(getMoney<sumprice){
+				this.v.println("金额不足以支付！");
+			}else{
+				this.v.println("您一共消费"+sumprice+"元，欢迎下次光临！");
+			}
 		}else if(i==2){
-			sumprice*=c.getV().getDis();
-			getMoney = sumprice;
-			this.v.println("您使用了会员卡，一共消费"+sumprice+"元，欢迎下次光临！");
+			if(c.getV()==null){
+				this.v.println("抱歉，您还不是会员");
+			}else{
+				sumprice*=c.getV().getDis();
+				getMoney = sumprice;
+				this.v.println("您使用了会员卡，一共消费"+sumprice+"元，欢迎下次光临！");
+			}
+			
 		}
 	    //打印小票
 		this.v.println("----------------购物小票----------------");
 		this.v.println("交易编号:"+p.getUuId());
 		this.v.println("交易时间:"+p.getoTime());
 		this.v.println("会员卡号："+c.getV().getCardId());
-		this.v.println("-------------------------------------");
+		this.v.println("----------------------------------------");
 		this.v.println("编号"+"\t名称"+"\t数量"+"\t小计");
 		for (Food f : key) {
 			System.out.println(f.getfId()+"\t"+f.getfName()+"\t"+m.get(f)+f.getPrice()*f.getDis()*m.get(f));
 		}
-		this.v.println("--------------------------------------");
+		this.v.println("-----------------------------------------");
 		this.v.println("总金额："+sumprice);
 		this.v.println("欢迎下次光临！");
 	}
